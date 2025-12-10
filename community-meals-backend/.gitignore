@@ -1,0 +1,15 @@
+# Node dependencies (backend + client)
+node_modules/
+
+# Build outputs
+dist/
+build/
+.vite/
+
+# Env / secrets
+.env
+.env.*
+
+# OS junk
+.DS_Store
+Thumbs.db
