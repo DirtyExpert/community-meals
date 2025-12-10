@@ -1,0 +1,452 @@
+A clear app outline (roles, flows, features)
+
+A repo + folder structure suggestion
+
+A phased timeline you can turn into GitHub milestones/issues
+
+I’ll assume you’ll reuse your Expo/React Native + Node/Express setup since you already run that stack. 
+
+AppBuilderGPT_SystemPrompt
+
+1. Core concept (MVP for 93230)
+
+One-liner:
+An app where people in 93230 can offer home-cooked meals (for free or low cost) and neighbors can claim them, with simple safety info and clear pickup rules.
+
+User roles
+
+Cooks
+
+Post a meal (title, description, allergens, number of portions, time window, pickup location area).
+
+Mark it as free or low-cost (like $3–$5 to cover ingredients).
+
+Mark as claimed/out-of-stock.
+
+Neighbors / Diners
+
+See available meals near them (feed + map or at least list by distance).
+
+Filter by time, dietary type (veg, halal, etc.), price (free only).
+
+“Request” or “Reserve” a portion.
+
+Admin (you)
+
+Basic dashboard (even if it’s just a DB + a couple of endpoints or a simple admin screen later).
+
+Ability to deactivate abusive users or meals.
+
+2. MVP feature outline
+
+Think in vertical slices – each slice delivers some end-to-end value.
+
+Slice 1 – Onboarding & basic auth
+
+Email + password login (or passwordless email magic link later).
+
+Simple profile:
+
+Name
+
+Zip code (locked to 93230 for MVP)
+
+“I cook / I eat / both”
+
+Slice 2 – Meal posting (Cooks)
+
+Create meal:
+
+Title (e.g., “Chicken enchiladas”)
+
+Short description
+
+When it’ll be ready (date, time range)
+
+Number of servings
+
+Cost per serving (0 allowed)
+
+Tags: {vegetarian, vegan, gluten-free, pork, nut-free, etc.}
+
+Status:
+
+Open → Reserved → Completed / Cancelled
+
+Slice 3 – Browsing & reserving (Diners)
+
+Main home screen:
+
+List of today + upcoming meals in 93230.
+
+Filters: date, free-only, dietary tags.
+
+Meal detail screen:
+
+Cook’s name, rating (future), allergens, pickup instructions.
+
+Button: Reserve serving(s).
+
+Reservation flow:
+
+User selects number of servings (within remaining availability).
+
+Cook sees who reserved.
+
+Slice 4 – Notifications & confirmations
+
+In-app “Updates” feed for now (push notifications later):
+
+“Your reservation is confirmed.”
+
+“Cook marked your reservation as ready.”
+
+Cooks can mark:
+
+“Ready for pickup”
+
+“Picked up”
+
+Slice 5 – Safety & trust basics (MVP-level only)
+
+Required checkbox when posting:
+
+“I prepared this food at home and understand I’m responsible for its safety.”
+
+A simple “Read before using this app” screen:
+
+No guarantees of food safety.
+
+Not for resale.
+
+Encouraged to label allergens clearly.
+
+3. Tech + GitHub repo structure
+
+You can mirror your existing pattern: frontend & backend repos. 
+
+AppBuilderGPT_SystemPrompt
+
+Repos
+
+community-meals-client (Expo / React Native)
+
+community-meals-backend (Node.js + Express, maybe Postgres or MongoDB)
+
+Frontend (community-meals-client/)
+community-meals-client/
+  App.js
+  package.json
+  app.json
+  src/
+    screens/
+      Auth/
+        LoginScreen.js
+        RegisterScreen.js
+      Home/
+        MealFeedScreen.js
+        MealDetailScreen.js
+      Cook/
+        CreateMealScreen.js
+        MyMealsScreen.js
+      Profile/
+        ProfileScreen.js
+      Info/
+        SafetyInfoScreen.js
+    components/
+      MealCard.js
+      TagChips.js
+      PrimaryButton.js
+    api/
+      mealsApi.js
+      authApi.js
+    theme/
+      colors.js
+      typography.js
+    utils/
+      validation.js
+      formatDate.js
+
+Backend (community-meals-backend/)
+community-meals-backend/
+  server.mjs
+  package.json
+  .env
+  src/
+    routes/
+      auth.mjs
+      meals.mjs
+      reservations.mjs
+      health.mjs
+    controllers/
+      authController.mjs
+      mealsController.mjs
+      reservationsController.mjs
+    services/
+      authService.mjs
+      mealsService.mjs
+      reservationsService.mjs
+    db/
+      index.mjs        // DB connection
+      models/
+        User.mjs
+        Meal.mjs
+        Reservation.mjs
+    middleware/
+      authMiddleware.mjs
+      errorHandler.mjs
+    utils/
+      logger.mjs
+      validators.mjs
+
+4. Timeline & GitHub milestones (approx. 8–10 weeks)
+
+You can turn each Milestone into a GitHub Milestone and each bullet into issues.
+
+Milestone 0 (Week 0–1): Project setup
+
+Issues to create:
+
+Initialize community-meals-client Expo app.
+
+Initialize community-meals-backend Express app.
+
+Add README.md in both repos describing the goal (93230 pilot, home-cooked meals).
+
+Set up .editorconfig, .gitignore, basic eslint/prettier if you want.
+
+Add /health endpoint in backend and test from client.
+
+Milestone 1 (Week 1–2): Auth & profiles
+
+Backend
+
+Create User model (name, email, password hash, role: cook/diner/both, zip, createdAt).
+
+/auth/register and /auth/login endpoints with JWT.
+
+Middleware: authMiddleware.mjs to protect routes.
+
+Frontend
+
+LoginScreen, RegisterScreen, ProfileScreen.
+
+Basic auth flow:
+
+Save JWT in secure storage.
+
+Redirect to Home after login.
+
+GitHub Issues:
+
+“Implement JWT-based login”
+
+“Wire login screen to backend”
+
+“Protect private routes in app”
+
+Milestone 2 (Week 3–4): Meals CRUD (core of the app)
+
+Backend
+
+Meal model:
+
+userId, title, description, tags, costPerServing, servingsTotal, servingsAvailable, readyAt, zip (default 93230), status.
+
+Endpoints:
+
+POST /meals (create meal)
+
+GET /meals?zip=93230&from=<date> (public list)
+
+GET /meals/:id
+
+GET /meals/mine (for cooks)
+
+PATCH /meals/:id (update / close)
+
+Validations: servings ≥ 1, cost ≥ 0.
+
+Frontend
+
+CreateMealScreen, MyMealsScreen, MealFeedScreen, MealDetailScreen.
+
+Meal cards + filters (today / tomorrow / free-only).
+
+GitHub Issues:
+
+“Implement meals CRUD endpoints”
+
+“Create meal form UI with validation”
+
+“Hook feed to GET /meals”
+
+Milestone 3 (Week 5–6): Reservations & basic notifications
+
+Backend
+
+Reservation model:
+
+userId (diner), mealId, servings, status (requested/confirmed/completed/cancelled).
+
+Endpoints:
+
+POST /meals/:id/reservations
+
+GET /reservations/mine (diner view)
+
+GET /meals/:id/reservations (cook view)
+
+PATCH /reservations/:id (status changes).
+
+On reservation creation, decrement servingsAvailable if confirmed.
+
+Frontend
+
+In MealDetailScreen:
+
+Reserve servings.
+
+Show your reservation status.
+
+Simple “Updates” screen listing your reservations and status changes.
+
+GitHub Issues:
+
+“Reservation model and endpoints”
+
+“Reserve servings flow on frontend”
+
+“My reservations screen”
+
+Milestone 4 (Week 7–8): Safety, polish, and 93230 pilot launch
+
+Safety
+
+SafetyInfoScreen with clear expectations and disclaimers.
+
+Show link on first login + in profile/menu.
+
+Polish
+
+Basic theming: brand colors, buttons, consistent typography.
+
+Error handling and loading states on all network calls.
+
+Limit posting/browsing to zip 93230 (server-side check and client-side default).
+
+Pilot readiness
+
+Basic seed script for backend to create:
+
+A couple of fake cooks and meals for demo.
+
+Manual test run with a few real households in 93230.
+
+GitHub issues:
+
+“Add safety info screen and flow”
+
+“Add app theming and finalize primary button styles”
+
+“Limit meals to zip 93230 for MVP”
+
+5. Nice-to-have backlog (GitHub “Future” milestone)
+
+These are tickets you can park in a “Future” milestone:
+
+Ratings & reviews for cooks.
+
+In-app messaging between diner and cook.
+
+Simple tip/donation integration (Stripe, etc.).
+
+Map view using addresses or approximate location.
+
+Photo upload for meals.
+
+Push notifications for:
+
+Reservation confirmed
+
+Meal ready
+
+Expansion to neighboring zips:
+
+Config table of supported zips.
+
+Admin panel for adding zips.
+
+If you want, next step we can draft the first README.md and a GitHub milestones + issue list that you can literally paste into GitHub and start checking off.
+
+Sources
+You said:
+Yes and should I save this first list? How and where?
+ChatGPT said:
+Thought for 12s
+
+Yeah, absolutely save it. That “first list” is basically your v1 spec for the app. If you just leave it in this chat, you’ll lose track of it.
+
+Here’s what I’d do, step-by-step.
+
+1. Where to save it
+
+Best place: inside your GitHub repo(s) for this project.
+
+Use one repo to start (you can split client/backend later if you want):
+
+community-meals
+
+Inside that repo, make:
+
+README.md → short overview + link to the plan
+
+docs/MVP-plan.md → the full outline/timeline I gave you
+
+That way, your “brains” for the project live with the code.
+
+2. Concrete file setup
+
+In your project folder:
+
+mkdir community-meals
+cd community-meals
+git init
+mkdir docs
+
+
+Create README.md:
+
+# Community Meals – 93230 Pilot
+
+An app for local communities to share home-cooked meals for free or low cost.
+
+- Pilot area: **93230 (Hanford, CA)**
+- Users:
+  - Cooks: post meals (free or low-cost)
+  - Neighbors/Diners: reserve portions and pick up
+- Status: Planning MVP
+
+👉 See [docs/MVP-plan.md](docs/MVP-plan.md) for the feature outline and timeline.
+
+
+Create docs/MVP-plan.md and paste the outline/timeline I gave you in the last message (roles, slices, milestones, etc.).
+
+3. Save it in Git and push to GitHub
+
+Once those files are created:
+
+git add .
+git commit -m "Add MVP plan and README"
+git branch -M main
+git remote add origin <your-github-repo-url>
+git push -u origin main
+
+
+Now your plan is:
+
+Versioned
+
+Safe in GitHub
+
+Easy to turn into Issues and Milestones later
