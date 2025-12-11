@@ -70,3 +70,97 @@ community-meals/
         models/
       middleware/
       utils/
+3. Minimal README so anyone can run it
+
+In the repo root, open README.md and make sure there’s at least something like this (you can paste this under whatever’s there, or replace if it’s empty and you want it short):
+
+# Community Meals (Hanford 93230 pilot)
+
+Simple pilot app where home cooks in 93230 can post extra plates and neighbors can reserve them.
+
+## Stack
+
+- Frontend: React (Vite) in `community-meals-client`
+- Backend: Node + Express API in `community-meals-backend`
+
+## Running locally
+
+### Backend
+
+```bash
+cd community-meals-backend
+npm install
+npm run dev
+
+
+Backend defaults to http://localhost:4000.
+
+Frontend
+cd community-meals-client
+npm install
+npm run dev
+
+
+Frontend defaults to http://localhost:5173.
+
+Make sure the backend is running before you try to create meals or reservations.
+
+Core flows
+
+Sign in / Join pilot
+Enter name, email, and password. App will:
+
+Try to log you in.
+
+If that fails, auto-register you as a cook in 93230.
+
+Post a meal
+On the main page you can:
+
+Set title, date/time, servings, cost per serving, location, and notes.
+
+Post a meal and see it in the feed.
+
+Reserve a meal
+From the list, tap Reserve 1 serving to create a reservation.
+View your reservations on the My reservations page.
+
+
+That’s enough for someone (or future you) to fire it up without asking questions.
+
+---
+
+## 4. Git: commit and push so it’s “frozen”
+
+From the repo root on your machine:
+
+```bash
+git status
+
+
+If it shows changes in the client (App.jsx, MealsListPage, App.css, etc.) and maybe backend, then:
+
+git add .
+git commit -m "Polish MVP: social landing, reservations page, nav wired"
+git push origin main
+
+
+(If your main branch is named something else, swap that in.)
+
+Once that’s pushed, Community Meals MVP is locked in GitHub and we don’t have to think about it while we tear into the Mel app.
+
+5. Call it “good enough for v1”
+
+Functionally, with what you’ve got now:
+
+Cooks can sign in / auto-register
+
+Cooks can post meals
+
+Diners/cooks can reserve
+
+They can see their reservations
+
+There’s a social-style landing/hero that sells the concept
+
+That’s a legit v1 pilot. Anything else (cook profile pages, photos, ratings, etc.) is v2/v3 territory.

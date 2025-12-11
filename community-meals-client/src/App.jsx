@@ -1,10 +1,6 @@
-// community-meals-client/src/App.jsx
-
 import { Routes, Route, Link } from "react-router-dom";
-import MealsListPage from "./pages/MealsListPage";
-import MyReservationsPage from "./pages/MyReservationsPage";
-import MyMealsPage from "./pages/MyMealsPage";
-import CookProfilePage from "./pages/CookProfilePage";
+import MealsListPage from "./pages/MealsListPage.jsx";
+import MyReservationsPage from "./pages/MyReservationsPage.jsx";
 import "./App.css";
 
 function App() {
@@ -22,12 +18,7 @@ function App() {
 
           <nav className="nav">
             <Link to="/">Meals</Link>
-            <Link to="/reservations">My Reservations</Link>
-            <Link to="/my-meals">My Meals</Link>
-            <Link to="/my-profile">My Profile</Link>
-            {/* Future:
-              <Link to="/login">Sign in</Link>
-            */}
+            <Link to="/my-reservations">My reservations</Link>
           </nav>
         </div>
       </header>
@@ -35,18 +26,9 @@ function App() {
       <main className="app-main">
         <Routes>
           <Route path="/" element={<MealsListPage />} />
-          <Route path="/reservations" element={<MyReservationsPage />} />
-          <Route path="/my-meals" element={<MyMealsPage />} />
-          <Route path="/my-profile" element={<CookProfilePage />} />
-          <Route path="/cooks/:cookId" element={<CookProfilePage />} />
+          <Route path="/my-reservations" element={<MyReservationsPage />} />
         </Routes>
       </main>
-
-      <footer className="app-footer">
-        <small>
-          Backend: <code>http://localhost:4000</code> · Local pilot only.
-        </small>
-      </footer>
     </div>
   );
 }
