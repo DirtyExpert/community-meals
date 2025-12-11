@@ -1,42 +1,363 @@
-#root {
-  max-width: 1280px;
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f3f4f6;
+  color: #111827;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+}
+
+/* Layout */
+
+.app-header {
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #ffffff;
+}
+
+.app-header-inner {
+  max-width: 960px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.app-main {
+  flex: 1;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.app-footer {
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Branding */
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.brand-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.9rem;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.brand-title {
+  font-weight: 600;
+  font-size: 1rem;
 }
 
-.card {
-  padding: 2em;
+.brand-subtitle {
+  font-size: 0.8rem;
+  color: #6b7280;
 }
 
-.read-the-docs {
-  color: #888;
+/* Nav */
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.9rem;
+}
+
+.nav a {
+  text-decoration: none;
+  color: #4b5563;
+}
+
+.nav a:hover {
+  color: #111827;
+}
+
+/* Meals page */
+
+.meals-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.meals-header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.meals-header p {
+  font-size: 0.95rem;
+  color: #4b5563;
+}
+
+.status-message {
+  font-size: 0.95rem;
+  color: #4b5563;
+}
+
+.status-message.error {
+  color: #b91c1c;
+}
+
+/* Auth card */
+
+.auth-card {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem 1.25rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 15px -15px rgba(15, 23, 42, 0.5);
+}
+
+.auth-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.auth-text {
+  font-size: 0.9rem;
+  color: #4b5563;
+  margin-bottom: 0.75rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.auth-inline-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.auth-form input {
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.9rem;
+  outline: none;
+  background-color: #f9fafb;
+  color: #111827; /* darker input text */
+}
+
+.auth-form input:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 1px rgba(22, 163, 74, 0.3);
+  background-color: #ffffff;
+}
+
+.auth-status {
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.auth-status.error {
+  color: #b91c1c;
+}
+
+/* Buttons */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.05);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: #ffffff;
+  color: #374151;
+}
+
+.btn-secondary:hover {
+  background-color: #f3f4f6;
+}
+
+/* Meals grid + cards */
+
+.meals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.meal-card {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 10px 15px -15px rgba(15, 23, 42, 0.5);
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.meal-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.meal-meta {
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.meal-description {
+  font-size: 0.9rem;
+  color: #374151;
+  margin-top: 0.25rem;
+}
+
+.meal-actions {
+  margin-top: 0.75rem;
+}
+
+/* Create meal card */
+
+.create-meal-card {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem 1.25rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 15px -15px rgba(15, 23, 42, 0.5);
+  margin-bottom: 0.5rem;
+}
+
+.create-meal-card h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.create-meal-help {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
+}
+
+.create-meal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.create-meal-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.form-full-row {
+  width: 100%;
+}
+
+.create-meal-form input,
+.create-meal-form textarea {
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.9rem;
+  outline: none;
+  background-color: #f9fafb;
+  color: #111827; /* darker input/textarea text */
+}
+
+.create-meal-form input:focus,
+.create-meal-form textarea:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 1px rgba(22, 163, 74, 0.3);
+  background-color: #ffffff;
+}
+
+/* Debug section */
+
+.meal-raw {
+  margin-top: 0.5rem;
+}
+
+.meal-raw summary {
+  font-size: 0.8rem;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.meal-raw pre {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  max-height: 200px;
+  overflow: auto;
+  background-color: #f3f4f6;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+/* Placeholder color tweaks */
+
+.auth-form input::placeholder,
+.create-meal-form input::placeholder,
+.create-meal-form textarea::placeholder {
+  color: #6b7280;
+  opacity: 1;
 }

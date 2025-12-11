@@ -252,3 +252,143 @@ Crash time approved. 🛋️
 
 
 
+# Community Meals – Project STATUS
+
+_Last updated: 2025-12-10_
+
+---
+
+## High-Level
+
+A small web app to connect local home cooks with neighbors who want affordable, home-style meals.
+
+- **Backend:** Node + Express (ES modules), in-memory storage, JWT auth.
+- **Frontend:** Vite + React, React Router, minimal styling (vanilla CSS).
+
+This document tracks what’s working right now and what’s next.
+
+---
+
+## Backend (community-meals-backend)
+
+**Tech**
+
+- Node.js + Express
+- ES modules (`.mjs`)
+- In-memory data store (no persistent DB yet)
+- JWT-based authentication
+- Port: `4000`
+
+**Auth**
+
+- `POST /auth/register`
+  - Body (expected): `{ name, email, password, role, zip }`
+  - Creates a user (e.g., role `"cook"` for meal creators, `"diner"` for eaters).
+- `POST /auth/login`
+  - Body: `{ email, password }`
+  - Returns `{ user, token }` on success.
+- JWT is required for protected routes via `Authorization: Bearer <token>` header.
+
+**Meals**
+
+- `GET /meals`
+  - Returns list of meals (public).
+- `GET /meals/:id`
+  - Returns a single meal.
+- `GET /meals/mine`
+  - Returns meals for the authenticated cook.
+- `POST /meals` _(auth required)_
+  - Creates a meal for the logged-in cook.
+  - **Required fields (current implementation):**
+    - `title` (string)
+    - `description` (string)
+    - `servingsTotal` (number)
+    - `costPerServing` (number)
+    - `readyAt` (ISO timestamp)
+  - Optional / extra fields used by frontend:
+    - `cookName`
+    - `location`
+- `PATCH /meals/:id` _(auth required)_
+  - Update an existing meal (owner-only).
+
+**Reservations**
+
+- `POST /meals/:id/reservations` _(auth likely required)_
+  - Create a reservation for a meal.
+- `GET /meals/:id/reservations`
+  - List reservations for a given meal (probably cook-only).
+- `GET /reservations/mine`
+  - List reservations for the currently authenticated user.
+- `PATCH /reservations/:id`
+  - Update a reservation (e.g., cancel / change quantity).
+
+> Frontend does **not** call the reservations endpoints yet.
+
+---
+
+## Frontend (community-meals-client)
+
+**Tech**
+
+- Vite + React
+- React Router (`BrowserRouter`)
+- Vanilla CSS in `src/App.css`
+- API client in `src/api/client.js`
+
+**Routing**
+
+- `src/main.jsx`
+  - Wraps `<App />` with `<BrowserRouter>`.
+- `src/App.jsx`
+  - Base layout: header, nav, main, footer.
+  - Routes:
+    - `/` → `MealsListPage`
+
+**API Client (`src/api/client.js`)**
+
+- `API_BASE_URL` from `VITE_API_BASE_URL` or defaults to `http://localhost:4000`.
+- Auth token stored in `localStorage` under key `cm_token`.
+- All requests automatically attach `Authorization: Bearer <token>` if present.
+
+Exports:
+
+- `getAuthToken()`, `setAuthToken(token)`, `clearAuthToken()`
+- `getMeals()` → `GET /meals`
+- `createMeal(meal)` → `POST /meals` (auth required)
+- `registerUser({ name, email, password, role, zip })` → `POST /auth/register`
+- `loginUser({ email, password })` → `POST /auth/login` (also sets token)
+
+**Meals List Page (`src/pages/MealsListPage.jsx`)**
+
+Single-page MVP at `/` that currently does all of this:
+
+1. **Auth card**
+   - If not signed in:
+     - Shows a simple form: `name`, `email`, `password`.
+     - On submit:
+       - Tries `loginUser(email, password)`.
+       - If login fails with auth-style errors, attempts `registerUser` as a cook in ZIP `93230`, then logs in.
+     - Stores user object in `localStorage` under `cm_user`.
+   - If signed in:
+     - Shows “Signed in as X”.
+     - Provides **Sign out** button (clears token + user).
+
+2. **Create Meal card**
+   - Form fields:
+     - `Title`
+     - `Cook / host name`
+     - `Location`
+     - `Date`
+     - `Time`
+     - `Servings (total)`
+     - `Cost per serving ($)`
+     - `Description`
+   - On submit, if user is not signed in:
+     - Shows error: must be signed in as a cook to create meals.
+   - On submit, if signed in:
+     - Builds payload that matches backend requirements:
+       - `title`
+       - `description`
+       - `servingsTotal` (number, default 1)
+       - `costPerServing` (number, default 0)
+       - `readyAt` (ISO timestamp composed from
