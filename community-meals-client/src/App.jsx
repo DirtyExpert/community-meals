@@ -4,6 +4,7 @@ import { Routes, Route, Link } from "react-router-dom";
 import MealsListPage from "./pages/MealsListPage";
 import MyReservationsPage from "./pages/MyReservationsPage";
 import MyMealsPage from "./pages/MyMealsPage";
+import CookProfilePage from "./pages/CookProfilePage";
 import "./App.css";
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
             <Link to="/">Meals</Link>
             <Link to="/reservations">My Reservations</Link>
             <Link to="/my-meals">My Meals</Link>
+            <Link to="/my-profile">My Profile</Link>
             {/* Future:
               <Link to="/login">Sign in</Link>
             */}
@@ -35,6 +37,8 @@ function App() {
           <Route path="/" element={<MealsListPage />} />
           <Route path="/reservations" element={<MyReservationsPage />} />
           <Route path="/my-meals" element={<MyMealsPage />} />
+          <Route path="/my-profile" element={<CookProfilePage />} />
+          <Route path="/cooks/:cookId" element={<CookProfilePage />} />
         </Routes>
       </main>
 

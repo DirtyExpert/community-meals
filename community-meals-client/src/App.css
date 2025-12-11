@@ -1,363 +1,387 @@
+/* community-meals-client/src/App.css */
+
+/* ---------- Base & background ---------- */
+
+:root {
+  --bg-base: #020617;       /* slate-950 */
+  --bg-elevated: #020617f2; /* slightly transparent for glass cards */
+  --accent: #f97316;        /* orange-500 */
+  --accent-soft: #fed7aa;   /* orange-200 */
+  --text-main: #e5e7eb;     /* gray-200 */
+  --text-muted: #9ca3af;    /* gray-400 */
+  --border-subtle: rgba(148, 163, 184, 0.45);
+  --danger: #f97373;
+  --success: #4ade80;
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --shadow-soft: 0 22px 45px rgba(15, 23, 42, 0.85);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  color: var(--text-main);
+
+  /* Graphic background: layered gradients = “community glow” */
+  background:
+    radial-gradient(circle at 0% 0%, rgba(248, 113, 113, 0.18) 0, transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(52, 211, 153, 0.18) 0, transparent 55%),
+    radial-gradient(circle at 10% 90%, rgba(251, 191, 36, 0.18) 0, transparent 55%),
+    linear-gradient(135deg, #020617, #020617 40%, #0b1120 70%, #020617);
+
+  background-attachment: fixed;
+}
+
+/* This keeps the app full-height so background looks good */
 .App {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f3f4f6;
-  color: #111827;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    sans-serif;
 }
 
-/* Layout */
+/* ---------- Header / Nav ---------- */
 
 .app-header {
-  border-bottom: 1px solid #e5e7eb;
-  background-color: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(18px);
+  background: linear-gradient(
+    to right,
+    rgba(15, 23, 42, 0.94),
+    rgba(15, 23, 42, 0.92)
+  );
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .app-header-inner {
   max-width: 960px;
   margin: 0 auto;
-  padding: 0.75rem 1.5rem;
+  padding: 0.85rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 1.25rem;
 }
-
-.app-main {
-  flex: 1;
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 1.5rem;
-}
-
-.app-footer {
-  border-top: 1px solid #e5e7eb;
-  background-color: #f9fafb;
-  padding: 0.75rem 1.5rem;
-  font-size: 0.75rem;
-  color: #6b7280;
-  text-align: center;
-}
-
-/* Branding */
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.8rem;
 }
 
 .brand-mark {
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #16a34a, #22c55e);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
-  font-weight: 700;
-  font-size: 0.9rem;
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 30%, #fed7aa, #f97316);
+  color: #111827;
+  font-weight: 800;
+  font-size: 1.05rem;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.9),
+    0 16px 30px rgba(15, 23, 42, 0.9);
 }
 
 .brand-title {
+  font-size: 1.05rem;
   font-weight: 600;
-  font-size: 1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .brand-subtitle {
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
-
-/* Nav */
 
 .nav {
   display: flex;
+  gap: 0.85rem;
   align-items: center;
-  gap: 1rem;
-  font-size: 0.9rem;
 }
 
 .nav a {
+  font-size: 0.9rem;
   text-decoration: none;
-  color: #4b5563;
+  color: var(--text-muted);
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  transition:
+    color 0.15s ease-out,
+    border-color 0.15s ease-out,
+    background-color 0.15s ease-out,
+    transform 0.1s ease-out;
 }
 
 .nav a:hover {
-  color: #111827;
+  color: var(--accent-soft);
+  background-color: rgba(15, 23, 42, 0.85);
+  border-color: rgba(248, 250, 252, 0.08);
+  transform: translateY(-1px);
 }
 
-/* Meals page */
+/* ---------- Main content ---------- */
 
-.meals-page {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+.app-main {
+  flex: 1;
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.75rem 1.5rem 3rem;
 }
 
-.meals-header h1 {
-  font-size: 1.5rem;
-  margin-bottom: 0.25rem;
+/* Generic “page card” wrapper used by all screens (Meals, MyMeals, MyReservations) */
+.page {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  padding: 1.75rem 1.6rem 1.9rem;
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(24px);
 }
 
-.meals-header p {
-  font-size: 0.95rem;
-  color: #4b5563;
-}
-
-.status-message {
-  font-size: 0.95rem;
-  color: #4b5563;
-}
-
-.status-message.error {
-  color: #b91c1c;
-}
-
-/* Auth card */
-
-.auth-card {
-  background-color: #ffffff;
-  border-radius: 0.75rem;
-  padding: 1rem 1.25rem 1.25rem;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 10px 15px -15px rgba(15, 23, 42, 0.5);
-}
-
-.auth-title {
-  font-size: 1.1rem;
+.page h1 {
+  margin-top: 0;
+  font-size: 1.4rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.auth-text {
-  font-size: 0.9rem;
-  color: #4b5563;
   margin-bottom: 0.75rem;
 }
 
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.auth-inline-fields {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 0.75rem 1rem;
-}
-
-.auth-form label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.85rem;
-  color: #374151;
-}
-
-.auth-form input {
-  border-radius: 0.5rem;
-  border: 1px solid #d1d5db;
-  padding: 0.4rem 0.5rem;
-  font-size: 0.9rem;
-  outline: none;
-  background-color: #f9fafb;
-  color: #111827; /* darker input text */
-}
-
-.auth-form input:focus {
-  border-color: #16a34a;
-  box-shadow: 0 0 0 1px rgba(22, 163, 74, 0.3);
-  background-color: #ffffff;
-}
-
-.auth-status {
-  font-size: 0.85rem;
-  color: #4b5563;
-}
-
-.auth-status.error {
-  color: #b91c1c;
-}
-
-/* Buttons */
-
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.45rem 0.9rem;
-  border-radius: 999px;
-  border: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  background: linear-gradient(135deg, #16a34a, #22c55e);
-  color: #ffffff;
-}
-
-.btn-primary:hover {
-  filter: brightness(1.05);
-}
-
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.4rem 0.85rem;
-  border-radius: 999px;
-  border: 1px solid #d1d5db;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  background-color: #ffffff;
-  color: #374151;
-}
-
-.btn-secondary:hover {
-  background-color: #f3f4f6;
-}
-
-/* Meals grid + cards */
-
-.meals-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1rem;
-}
-
-.meal-card {
-  background-color: #ffffff;
-  border-radius: 0.75rem;
-  padding: 1rem 1.25rem;
-  box-shadow: 0 10px 15px -15px rgba(15, 23, 42, 0.5);
-  border: 1px solid #e5e7eb;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.meal-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.meal-meta {
-  font-size: 0.9rem;
-  color: #4b5563;
-}
-
-.meal-description {
-  font-size: 0.9rem;
-  color: #374151;
-  margin-top: 0.25rem;
-}
-
-.meal-actions {
-  margin-top: 0.75rem;
-}
-
-/* Create meal card */
-
-.create-meal-card {
-  background-color: #ffffff;
-  border-radius: 0.75rem;
-  padding: 1rem 1.25rem 1.25rem;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 10px 15px -15px rgba(15, 23, 42, 0.5);
-  margin-bottom: 0.5rem;
-}
-
-.create-meal-card h2 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.create-meal-help {
-  font-size: 0.85rem;
-  color: #6b7280;
+.page > p {
+  margin-top: 0;
   margin-bottom: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.95rem;
 }
 
-.create-meal-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
+/* ---------- Forms & layout helpers ---------- */
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 0.75rem 1rem;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr);
+  gap: 1.5rem;
 }
 
-.create-meal-form label {
+@media (max-width: 800px) {
+  .app-header-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-main {
+    padding-inline: 1.1rem;
+  }
+
+  .page {
+    padding-inline: 1.2rem;
+  }
+}
+
+.panel {
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  padding: 1.1rem 1.1rem 1.2rem;
+  background: radial-gradient(circle at top left, rgba(249, 115, 22, 0.04), transparent 55%),
+    rgba(15, 23, 42, 0.9);
+}
+
+.panel h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+  margin-bottom: 0.7rem;
+}
+
+label {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  padding: 0.55rem 0.6rem;
+  font-size: 0.9rem;
+  background-color: rgba(15, 23, 42, 0.9);
+  color: var(--text-main);
+  outline: none;
+  transition:
+    border-color 0.15s ease-out,
+    box-shadow 0.15s ease-out,
+    background-color 0.15s ease-out;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(148, 163, 184, 0.8);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(248, 150, 69, 0.6);
+}
+
+/* ---------- Buttons ---------- */
+
+button,
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  border: none;
+  padding: 0.55rem 0.95rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: radial-gradient(circle at 20% 0%, #fed7aa, #f97316);
+  color: #111827;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.85);
+  transition:
+    transform 0.1s ease-out,
+    box-shadow 0.1s ease-out,
+    filter 0.1s ease-out,
+    opacity 0.1s ease-out;
+}
+
+button:hover,
+.button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.02);
+}
+
+button:active,
+.button:active {
+  transform: translateY(0px) scale(0.98);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.9);
+}
+
+button.secondary,
+.button.secondary {
+  background: rgba(15, 23, 42, 0.85);
+  color: var(--text-main);
+  box-shadow: none;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+}
+
+button.secondary:hover,
+.button.secondary:hover {
+  background: rgba(15, 23, 42, 0.98);
+}
+
+/* Make small inline actions (like reservation statuses) a bit tighter */
+button.small {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.78rem;
+}
+
+/* ---------- Status / error text ---------- */
+
+.status {
+  margin: 0.4rem 0 0.9rem;
+  font-size: 0.85rem;
+  color: var(--success);
+}
+
+.error {
+  margin: 0.4rem 0 0.9rem;
+  font-size: 0.86rem;
+  color: var(--danger);
+}
+
+/* ---------- Lists: meals & reservations ---------- */
+
+.meal-list,
+.reservation-list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.85rem;
-  color: #374151;
+  gap: 0.85rem;
 }
 
-.form-full-row {
-  width: 100%;
+.meal-item,
+.reservation-item {
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  padding: 0.85rem 0.95rem 0.95rem;
+  background: radial-gradient(circle at top right, rgba(251, 191, 36, 0.06), transparent 65%),
+    rgba(15, 23, 42, 0.96);
 }
 
-.create-meal-form input,
-.create-meal-form textarea {
-  border-radius: 0.5rem;
-  border: 1px solid #d1d5db;
-  padding: 0.4rem 0.5rem;
-  font-size: 0.9rem;
-  outline: none;
-  background-color: #f9fafb;
-  color: #111827; /* darker input/textarea text */
+.meal-item h2 {
+  margin: 0 0 0.3rem;
+  font-size: 1.02rem;
 }
 
-.create-meal-form input:focus,
-.create-meal-form textarea:focus {
-  border-color: #16a34a;
-  box-shadow: 0 0 0 1px rgba(22, 163, 74, 0.3);
-  background-color: #ffffff;
+.meal-item p,
+.reservation-item p {
+  margin: 0.2rem 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
 }
 
-/* Debug section */
-
-.meal-raw {
-  margin-top: 0.5rem;
+.meal-actions,
+.reservation-actions {
+  margin-top: 0.55rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
 }
 
-.meal-raw summary {
+/* ---------- Footer ---------- */
+
+.app-footer {
+  border-top: 1px solid var(--border-subtle);
+  background: rgba(15, 23, 42, 0.98);
+  color: var(--text-muted);
   font-size: 0.8rem;
-  color: #6b7280;
-  cursor: pointer;
+  padding: 0.8rem 1.5rem 1rem;
 }
 
-.meal-raw pre {
-  margin-top: 0.25rem;
-  font-size: 0.75rem;
-  max-height: 200px;
-  overflow: auto;
-  background-color: #f3f4f6;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
+.app-footer-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
-/* Placeholder color tweaks */
-
-.auth-form input::placeholder,
-.create-meal-form input::placeholder,
-.create-meal-form textarea::placeholder {
-  color: #6b7280;
-  opacity: 1;
+@media (max-width: 700px) {
+  .app-footer-inner {
+    flex-direction: column;
+  }
 }

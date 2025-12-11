@@ -11,7 +11,7 @@ import {
 } from "../api/client.js";
 
 function formatDateTime(raw) {
-  if (!raw) return "";
+  if (!raw) return null;
   try {
     return new Date(raw).toLocaleString();
   } catch {
@@ -19,43 +19,63 @@ function formatDateTime(raw) {
   }
 }
 
-function formatCurrency(value) {
-  if (value == null || isNaN(Number(value))) return "Free";
-  const num = Number(value);
+function formatMoney(raw) {
+  if (raw == null) return "Free";
+  const num = Number(raw);
+  if (Number.isNaN(num)) return String(raw);
   if (num === 0) return "Free";
   return `$${num.toFixed(2)}`;
 }
 
+function guessServings(reservation) {
+  return (
+    reservation.servings ??
+    reservation.quantity ??
+    reservation.count ??
+    1
+  );
+}
+
+function guessDinerName(res) {
+  if (res.dinerName) return res.dinerName;
+  if (res.diner && res.diner.name) return res.diner.name;
+  if (res.user && res.user.name) return res.user.name;
+  if (res.userName) return res.userName;
+  if (res.email) return res.email;
+  return "Neighbor";
+}
+
 export default function MyMealsPage() {
-  const [user] = useState(() => getStoredUser());
   const [meals, setMeals] = useState([]);
-  const [loadingMeals, setLoadingMeals] = useState(true);
+  const [mealsLoading, setMealsLoading] = useState(true);
   const [mealsError, setMealsError] = useState("");
 
   const [reservationsByMeal, setReservationsByMeal] = useState({});
-  const [activeMealId, setActiveMealId] = useState(null);
+  const [reservationsLoading, setReservationsLoading] = useState({});
+  const [reservationsError, setReservationsError] = useState({});
 
   const [statusMessage, setStatusMessage] = useState("");
   const [updatingReservationId, setUpdatingReservationId] = useState(null);
 
   const hasToken = !!getAuthToken();
+  const user = getStoredUser();
 
+  // Load meals for the logged-in cook
   useEffect(() => {
     if (!hasToken) {
-      setLoadingMeals(false);
+      setMealsLoading(false);
       return;
     }
 
     let cancelled = false;
 
     async function loadMyMeals() {
-      setLoadingMeals(true);
-      setMealsError("");
-
+      setMealsLoading(true);
       try {
         const data = await getMyMeals();
         if (!cancelled) {
           setMeals(Array.isArray(data) ? data : []);
+          setMealsError("");
         }
       } catch (err) {
         if (!cancelled) {
@@ -63,7 +83,7 @@ export default function MyMealsPage() {
         }
       } finally {
         if (!cancelled) {
-          setLoadingMeals(false);
+          setMealsLoading(false);
         }
       }
     }
@@ -75,62 +95,44 @@ export default function MyMealsPage() {
     };
   }, [hasToken]);
 
-  async function toggleReservations(mealId) {
+  async function loadReservationsForMeal(mealId) {
     if (!mealId) return;
 
-    setActiveMealId((prev) => (prev === mealId ? null : mealId));
-
-    // If we already have reservations loaded for this meal, don't refetch immediately
-    if (reservationsByMeal[mealId]?.items) return;
-
-    setReservationsByMeal((prev) => ({
-      ...prev,
-      [mealId]: { loading: true, error: "", items: [] },
-    }));
+    setReservationsError((prev) => ({ ...prev, [mealId]: "" }));
+    setReservationsLoading((prev) => ({ ...prev, [mealId]: true }));
 
     try {
-      const items = await getMealReservations(mealId);
+      const data = await getMealReservations(mealId);
       setReservationsByMeal((prev) => ({
         ...prev,
-        [mealId]: { loading: false, error: "", items: items || [] },
+        [mealId]: Array.isArray(data) ? data : [],
       }));
     } catch (err) {
-      setReservationsByMeal((prev) => ({
+      setReservationsError((prev) => ({
         ...prev,
-        [mealId]: {
-          loading: false,
-          error: err?.message || "Could not load reservations.",
-          items: [],
-        },
+        [mealId]: err?.message || "Could not load reservations for this meal.",
       }));
+    } finally {
+      setReservationsLoading((prev) => ({ ...prev, [mealId]: false }));
     }
   }
 
-  async function handleUpdateReservationStatus(mealId, reservation, nextStatus) {
+  async function handleReservationStatusChange(mealId, reservation, newStatus) {
     setStatusMessage("");
-    if (!mealId || !reservation) return;
+    if (!reservation) return;
 
-    const reservationId = reservation.id ?? reservation._id;
-    if (!reservationId) {
+    const id = reservation.id ?? reservation._id;
+    if (!id) {
       setStatusMessage("Missing reservation id; cannot update.");
       return;
     }
 
     try {
-      setUpdatingReservationId(reservationId);
-      await updateReservationStatus(reservationId, nextStatus);
-      setStatusMessage(`Reservation updated to ${nextStatus}.`);
-
-      // Reload reservations for this meal
-      const items = await getMealReservations(mealId);
-      setReservationsByMeal((prev) => ({
-        ...prev,
-        [mealId]: { loading: false, error: "", items: items || [] },
-      }));
-
-      // Reload meals so servings counts stay correct
-      const data = await getMyMeals();
-      setMeals(Array.isArray(data) ? data : []);
+      setUpdatingReservationId(id);
+      await updateReservationStatus(id, newStatus);
+      setStatusMessage(`Reservation updated to "${newStatus}".`);
+      // Refresh that meal's reservations
+      await loadReservationsForMeal(mealId);
     } catch (err) {
       setStatusMessage(err?.message || "Could not update reservation.");
     } finally {
@@ -138,13 +140,62 @@ export default function MyMealsPage() {
     }
   }
 
+  // --- Render guards ---
+
   if (!hasToken) {
     return (
       <main className="page page-my-meals">
         <h1>My Meals</h1>
-        <p>You need to sign in to see your meals.</p>
+        <p>You need to sign in as a cook to see your meals.</p>
         <p>
-          Go back to the <Link to="/">Meals page</Link> and sign in first.
+          Go back to the <Link to="/">main page</Link> and log in first.
+        </p>
+      </main>
+    );
+  }
+
+  if (user && user.role && user.role !== "cook") {
+    return (
+      <main className="page page-my-meals">
+        <h1>My Meals</h1>
+        <p>
+          You’re signed in as a <strong>{user.role}</strong>. Only cooks who
+          create meals can see this page.
+        </p>
+        <p>
+          You can still browse and reserve meals on the{" "}
+          <Link to="/">main page</Link>.
+        </p>
+      </main>
+    );
+  }
+
+  if (mealsLoading) {
+    return (
+      <main className="page page-my-meals">
+        <h1>My Meals</h1>
+        <p>Loading your meals…</p>
+      </main>
+    );
+  }
+
+  if (mealsError) {
+    return (
+      <main className="page page-my-meals">
+        <h1>My Meals</h1>
+        <p className="error">{mealsError}</p>
+      </main>
+    );
+  }
+
+  if (!meals.length) {
+    return (
+      <main className="page page-my-meals">
+        <h1>My Meals</h1>
+        <p>You haven’t created any meals yet.</p>
+        <p>
+          Use the “Create meal” form on the <Link to="/">main page</Link> to
+          post your first meal.
         </p>
       </main>
     );
@@ -152,218 +203,170 @@ export default function MyMealsPage() {
 
   return (
     <main className="page page-my-meals">
-      <section className="card my-meals-header-card">
-        <h1>My Meals</h1>
-        {user ? (
-          <p>
-            Signed in as <strong>{user.name || user.email}</strong>{" "}
-            {user.role && (
-              <>
-                (<code>{user.role}</code>)
-              </>
-            )}
-          </p>
-        ) : (
-          <p>Signed-in cook dashboard.</p>
-        )}
-        <p className="hint">
-          These are the meals you&apos;ve posted. You can see who reserved what
-          for each meal and update reservation status.
-        </p>
-        <p>
-          Need to post a new meal? Use the form on the{" "}
-          <Link to="/">Meals</Link> page.
-        </p>
-        {statusMessage && <p className="status">{statusMessage}</p>}
-      </section>
+      <h1>My Meals</h1>
+      <p>These are the meals you’ve created as a cook.</p>
 
-      <section className="card my-meals-list-card">
-        {loadingMeals && <p>Loading your meals…</p>}
-        {mealsError && <p className="error">{mealsError}</p>}
+      {statusMessage && <p className="status">{statusMessage}</p>}
 
-        {!loadingMeals && !mealsError && meals.length === 0 && (
-          <p>You haven&apos;t posted any meals yet.</p>
-        )}
+      <ul className="meal-list">
+        {meals.map((meal) => {
+          const id = meal.id ?? meal._id;
+          const readyAt = meal.readyAt;
+          const costPerServing = meal.costPerServing;
+          const servingsTotal = meal.servingsTotal ?? meal.totalServings;
+          const servingsAvailable =
+            meal.servingsAvailable ?? meal.availableServings;
 
-        <ul className="my-meals-list">
-          {meals.map((meal) => {
-            const mealId = meal.id ?? meal._id ?? meal.mealId;
-            const readyAt = formatDateTime(meal.readyAt);
-            const total =
-              meal.servingsTotal ??
-              meal.totalServings ??
-              meal.total_servings ??
-              null;
-            const available =
-              meal.servingsAvailable ??
-              meal.servings_remaining ??
-              null;
+          const reservations = reservationsByMeal[id] || [];
+          const isLoadingReservations = reservationsLoading[id];
+          const reservationsErr = reservationsError[id];
 
-            const reservationsState = reservationsByMeal[mealId] || {
-              loading: false,
-              error: "",
-              items: [],
-            };
+          return (
+            <li key={id || meal.title}>
+              <div className="meal-item">
+                <h2>{meal.title || "Untitled meal"}</h2>
+                {meal.description && <p>{meal.description}</p>}
 
-            const isOpen = activeMealId === mealId;
+                <p>
+                  <strong>Ready at:</strong>{" "}
+                  {readyAt ? formatDateTime(readyAt) : "Not specified"}
+                </p>
+                <p>
+                  <strong>Cost per serving:</strong>{" "}
+                  {formatMoney(costPerServing)}
+                </p>
+                <p>
+                  <strong>Servings:</strong>{" "}
+                  {servingsAvailable != null && servingsTotal != null
+                    ? `${servingsAvailable} available / ${servingsTotal} total`
+                    : servingsTotal != null
+                    ? `${servingsTotal} total`
+                    : "n/a"}
+                </p>
 
-            return (
-              <li key={mealId}>
-                <article className="meal-card my-meal-card">
-                  <header>
-                    <h2>{meal.title}</h2>
-                    <p className="meal-meta">
-                      {total != null && (
-                        <span>
-                          {total} total serving{total === 1 ? "" : "s"}
-                        </span>
-                      )}
-                      {total != null && available != null && <span> · </span>}
-                      {available != null && (
-                        <span>{available} left</span>
-                      )}
-                      <span> · </span>
-                      <span>{formatCurrency(meal.costPerServing)}</span>
-                    </p>
-                  </header>
+                <div className="meal-actions">
+                  <button
+                    type="button"
+                    onClick={() => loadReservationsForMeal(id)}
+                    disabled={isLoadingReservations}
+                  >
+                    {isLoadingReservations
+                      ? "Loading reservations…"
+                      : "View reservations"}
+                  </button>
+                </div>
 
-                  {meal.description && (
-                    <p className="meal-description">{meal.description}</p>
-                  )}
+                {reservationsErr && (
+                  <p className="error">{reservationsErr}</p>
+                )}
 
-                  <p className="meal-details">
-                    {meal.location && <span>{meal.location}</span>}
-                    {readyAt && (
-                      <>
-                        {meal.location && <span> · </span>}
-                        <span>Ready at: {readyAt}</span>
-                      </>
-                    )}
-                  </p>
+                {reservations.length > 0 && (
+                  <div className="meal-reservations">
+                    <h3>Reservations</h3>
+                    <ul className="reservation-list">
+                      {reservations.map((r) => {
+                        const rid = r.id ?? r._id;
+                        const status = r.status || "pending";
+                        const servings = guessServings(r);
+                        const createdAt = r.createdAt;
 
-                  <div className="meal-actions">
-                    <button
-                      type="button"
-                      onClick={() => toggleReservations(mealId)}
-                    >
-                      {isOpen ? "Hide reservations" : "Show reservations"}
-                    </button>
+                        const canConfirm =
+                          status === "pending" || status === "cancelled";
+                        const canComplete = status === "confirmed";
+                        const canCancel =
+                          status !== "cancelled" && status !== "completed";
+
+                        return (
+                          <li key={rid || `${r.userId}-${createdAt}`}>
+                            <div className="reservation-item">
+                              <p>
+                                <strong>Diner:</strong> {guessDinerName(r)}
+                              </p>
+                              <p>
+                                <strong>Servings:</strong> {servings}
+                              </p>
+                              <p>
+                                <strong>Status:</strong> {status}
+                              </p>
+                              {createdAt && (
+                                <p>
+                                  <strong>Requested on:</strong>{" "}
+                                  {formatDateTime(createdAt)}
+                                </p>
+                              )}
+
+                              <div className="reservation-actions">
+                                {canConfirm && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleReservationStatusChange(
+                                        id,
+                                        r,
+                                        "confirmed"
+                                      )
+                                    }
+                                    disabled={updatingReservationId === rid}
+                                  >
+                                    {updatingReservationId === rid
+                                      ? "Updating…"
+                                      : "Confirm"}
+                                  </button>
+                                )}
+
+                                {canComplete && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleReservationStatusChange(
+                                        id,
+                                        r,
+                                        "completed"
+                                      )
+                                    }
+                                    disabled={updatingReservationId === rid}
+                                  >
+                                    {updatingReservationId === rid
+                                      ? "Updating…"
+                                      : "Mark completed"}
+                                  </button>
+                                )}
+
+                                {canCancel && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleReservationStatusChange(
+                                        id,
+                                        r,
+                                        "cancelled"
+                                      )
+                                    }
+                                    disabled={updatingReservationId === rid}
+                                  >
+                                    {updatingReservationId === rid
+                                      ? "Updating…"
+                                      : "Cancel"}
+                                  </button>
+                                )}
+                              </div>
+
+                              <details>
+                                <summary>Debug details</summary>
+                                <pre>{JSON.stringify(r, null, 2)}</pre>
+                              </details>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
                   </div>
-
-                  {isOpen && (
-                    <div className="meal-reservations">
-                      {reservationsState.loading && (
-                        <p>Loading reservations…</p>
-                      )}
-                      {reservationsState.error && (
-                        <p className="error">
-                          {reservationsState.error}
-                        </p>
-                      )}
-                      {!reservationsState.loading &&
-                        !reservationsState.error &&
-                        reservationsState.items.length === 0 && (
-                          <p>No reservations yet for this meal.</p>
-                        )}
-
-                      {reservationsState.items.length > 0 && (
-                        <table className="reservations-table">
-                          <thead>
-                            <tr>
-                              <th>Diner</th>
-                              <th>Servings</th>
-                              <th>Status</th>
-                              <th>Reserved on</th>
-                              <th>Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {reservationsState.items.map((r) => {
-                              const servings =
-                                r.servings ??
-                                r.quantity ??
-                                r.count ??
-                                1;
-                              const createdAt = formatDateTime(
-                                r.createdAt || r.reservedAt
-                              );
-
-                              const dinerName =
-                                r.diner?.name ||
-                                r.user?.name ||
-                                r.dinerName ||
-                                r.userName ||
-                                r.diner?.email ||
-                                r.user?.email ||
-                                "Unknown diner";
-
-                              const status = r.status || "pending";
-                              const reservationId = r.id ?? r._id;
-                              const isUpdating =
-                                updatingReservationId === reservationId;
-
-                              return (
-                                <tr
-                                  key={
-                                    reservationId ||
-                                    `${mealId}-${createdAt}`
-                                  }
-                                >
-                                  <td>{dinerName}</td>
-                                  <td>{servings}</td>
-                                  <td>{status}</td>
-                                  <td>{createdAt}</td>
-                                  <td>
-                                    <div className="reservation-actions">
-                                      {["confirmed", "picked_up", "cancelled"].map(
-                                        (next) => (
-                                          <button
-                                            key={next}
-                                            type="button"
-                                            disabled={
-                                              isUpdating || status === next
-                                            }
-                                            onClick={() =>
-                                              handleUpdateReservationStatus(
-                                                mealId,
-                                                r,
-                                                next
-                                              )
-                                            }
-                                          >
-                                            {next.replace("_", " ")}
-                                          </button>
-                                        )
-                                      )}
-                                    </div>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      )}
-
-                      {reservationsState.items.length > 0 && (
-                        <details>
-                          <summary>Debug: raw reservations JSON</summary>
-                          <pre>
-                            {JSON.stringify(
-                              reservationsState.items,
-                              null,
-                              2
-                            )}
-                          </pre>
-                        </details>
-                      )}
-                    </div>
-                  )}
-                </article>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </main>
   );
 }
